@@ -30,23 +30,29 @@ class(mat) <- "numeric"
 #  Subset on this vector
 # mat <- mat[ rows , ]
 
-# this is not working
-rows <- apply(mat, 1, function(row) {
-  qt <- quantile( row, probs = c(0.1, 0.9) )
-  q <- any( row < qt[1] | row > qt[2] )
-  return(q)
-} )
-matF <- mat[ rows, ]
+# --- fix samples names ------------------
+colnames(mat) <- lapply(colnames(mat), function(x) substr(gsub(".","-",x,fixed=TRUE), 1, 16))
 
-# --- this works fabulously ---
-rows <- apply(mat, 1, function(row) var(row) < 1 )
-matF <- mat[ rows, ]
-dim(matF)
+# --- now lets load external list of samples from the table -------
+path <- "~/Dropbox/Yevgeniy-to-Maria/clustering-tool/TCGA-COAD-data/COAD_x_QN.txt"
+qdf <- read.table(path, sep="\t", header=TRUE)
+
+# --- leave in the matrix only sample present in qdf
+smat <- mat[, which(colnames(mat) %in% qdf$tcga_barcode)]
+
+dim(mat)
+dim(smat)
+
+# --- remove genes with variace < 4 ---------
+rows <- apply(smat, 1, function(row) var(row) > 4 )
+fmat <- smat[ rows, ]
+dim(fmat)
 
 
-hist(mat[1,], breaks=40, col="blue")
+hist(fmat, breaks=40, col="blue")
 
-d <- density(mat[1,])
+
+d <- density(fmat[1,])
 plot(d)
 polygon(d, col="red")
 
