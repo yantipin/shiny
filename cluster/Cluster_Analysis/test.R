@@ -14,7 +14,34 @@ df <- read.table(path, sep="\t", header = TRUE)
 
 # making df a numeric matrix 
 mat <- as.matrix(df[ 2:dim(df)[1], 2:dim(df)[2] ])
-rownames(mat) <- df$Hybridization.REF[ 2:dim(df)[1] ]
+
+# leave gene names only, remove GeneID
+genenames <- df$Hybridization.REF[ 2:dim(df)[1] ]
+aa <- lapply(genenames, function(x) { 
+   a <- strsplit(x, "|", fixed=TRUE) 
+   return(a[1]) 
+} )
+
+
+b <- noquote(strsplit(names[1], "|", fixed=TRUE)[[1]])
+
+b[1]
+
+b <- "123"
+class(b) <- "numeric"
+b
+
+str <- "?|100130426"
+a <- strsplit(str, "|", fixed=TRUE)
+
+q <- 5
+q <- 
+
+
+
+
+
+rownames(mat) <- 
 
 class(mat) <- "numeric"
 
@@ -46,21 +73,55 @@ dim(smat)
 # --- remove genes with variace < 4 ---------
 rows <- apply(smat, 1, function(row) var(row) > 4 )
 fmat <- smat[ rows, ]
+fmat <- fmat[1:10, ]
+
 dim(fmat)
+tfmat <- t(fmat)
+dim(tfmat)
+
+# hierarchical clustering
+# cor(tfmat, use="all.obs", method="spearman")
+
+d <- dist(tfmat)
+hc <- hclust(d)
+hc
+plot(hc, cex=0.5, xlim=1000, ylim=500)
+abline(h=5000)
+
+# cutting the tree
+hclusters <- cutree(hc, h=5000)
+length(table(cluster=hclusters))
+# adding colors 
+# http://rstudio-pubs-static.s3.amazonaws.com/1876_df0bf890dd54461f98719b461d987c3d.html
+labelColors <- colorRampPalette(brewer.pal(9, "RdYlGn"))(length(table(cluster=hclusters)))
+# function to get color labels
+colLab <- function(n) {
+  if (is.leaf(n)) {
+    a <- attributes(n)
+    labCol <- labelColors[hclusters[which(names(hclusters) == a$label)]]
+    attr(n, "nodePar") <- c(a$nodePar, lab.col = labCol)
+  }
+  n
+}
+# using dendrapply
+hcd <- as.dendrogram(hc)
+clusDendro <- dendrapply(hcd, colLab)
+# make plot
+par(cex=0.6)
+plot(clusDendro)
+abline(h=5000, col="red")
 
 
-hist(fmat, breaks=40, col="blue")
+# Heatmap 
+# image(matS)
+cols <- colorRampPalette(rev(brewer.pal(11,"RdBu")))(ncol(matS))
+colsR <- colorRampPalette(rev(brewer.pal(11,"Set3")))(nrow(matS))
+heatmap.2(fmat, col=cols,
+          trace="none", scale="row",
+          #RowSideColors=colsR,
+          key=TRUE)
 
 
-d <- density(fmat[1,])
-plot(d)
-polygon(d, col="red")
-
-var(mat[1,]) < 1
-
-qt <- quantile( mat[1,], probs = c(0.1, 0.9) )
-qt
-any(mat[1, ] > qt[2])
 
 
 
