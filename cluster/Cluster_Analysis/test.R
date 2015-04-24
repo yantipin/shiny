@@ -1,3 +1,4 @@
+
 # Code started 04/12/2015 
 ## If running the code for the 1st time install all packages:
 # Un-comment lines 5 - 7 and run the code 
@@ -16,7 +17,24 @@ df <- read.table(path, sep="\t", header = TRUE)
 mat <- as.matrix(df[ 2:dim(df)[1], 2:dim(df)[2] ])
 
 # leave gene names only, remove GeneID
-genenames <- df$Hybridization.REF[ 2:dim(df)[1] ]
+a <- df$Hybridization.REF[ 2:dim(df)[1] ]
+b <- as.character(a)
+
+
+a <- unlist(lapply(strsplit(t, "|", fixed=TRUE), `[[`, 2))
+
+
+a <- strsplit(genenames[100], "|", fixed="TRUE")
+
+genenames[200]
+
+a <- unlist(genenames)
+a[100]
+
+names2 <- unlist(lapply(strsplit(genenames, "|", fixed="TRUE"), `[[`, 1))
+
+typeof(genenames)
+
 aa <- lapply(genenames, function(x) { 
    a <- strsplit(x, "|", fixed=TRUE) 
    return(a[1]) 
@@ -31,8 +49,12 @@ b <- "123"
 class(b) <- "numeric"
 b
 
-str <- "?|100130426"
+str <- "EGFR|100130426"
 a <- strsplit(str, "|", fixed=TRUE)
+b <- unlist(a)
+typeof(b)
+a[[1]][1]
+b[1]
 
 q <- 5
 q <- 
@@ -73,20 +95,23 @@ dim(smat)
 # --- remove genes with variace < 4 ---------
 rows <- apply(smat, 1, function(row) var(row) > 4 )
 fmat <- smat[ rows, ]
-fmat <- fmat[1:10, ]
+# fmat <- fmat[1:10, ]
 
 dim(fmat)
 tfmat <- t(fmat)
 dim(tfmat)
 
 # hierarchical clustering
-# cor(tfmat, use="all.obs", method="spearman")
-
+#
+# eucledian distance -------
 d <- dist(tfmat)
-hc <- hclust(d)
+# spearman correlations ----
+sp <- cor(fmat, use="all.obs", method="spearman")
+dist <- as.dist(sp)
+hc <- hclust(dist)
 hc
 plot(hc, cex=0.5, xlim=1000, ylim=500)
-abline(h=5000)
+# abline(h=5000)
 
 # cutting the tree
 hclusters <- cutree(hc, h=5000)
